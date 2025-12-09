@@ -27,9 +27,15 @@ st.markdown("""
     }
     footer {visibility: hidden;}
 
-    /* Fundo Dark */
+   /* Fundo Dark */
     .stApp {
         background-color: #0E1117;
+        color: white; /* Define a cor padrão do texto como branco */
+    }
+
+    /* Força títulos, parágrafos e labels (legendas) a ficarem brancos */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {
+        color: white !important;
     }
 
     /* CARD DO PRODUTO (VITRINE) */
@@ -336,4 +342,5 @@ if not df.empty:
                     <div style="font-size:2rem; font-weight:900; color:#4CAF50;">R$ {dados_item['TOTAL_LINHA']:,.2f}</div>
                 </div>
             </div>
+
             """, unsafe_allow_html=True)
