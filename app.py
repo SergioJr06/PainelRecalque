@@ -226,7 +226,7 @@ if not df.empty:
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
     
     with col_kpi1:
-        st.markdown(f"<div style='font-size:1rem; color:#888'>CUSTO TOTAL</div><div class='big-kpi'>R$ {df['TOTAL_LINHA'].sum():,.2f}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size:1rem; color:#FFFFFF'>CUSTO TOTAL</div><div class='big-kpi'>R$ {df['TOTAL_LINHA'].sum():,.2f}</div>", unsafe_allow_html=True)
     with col_kpi2:
         st.metric("Total de Peças", int(df['QTD_NUM'].sum()))
     with col_kpi3:
@@ -344,3 +344,4 @@ if not df.empty:
             </div>
 
             """, unsafe_allow_html=True)
+
