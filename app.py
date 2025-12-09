@@ -14,11 +14,11 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. CSS ESTILIZAÇÃO (ATUALIZADO PARA REMOVER FOCO/BARRA)
+# 2. CSS ESTILIZAÇÃO
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-    /* Remove margens e barra superior */
+    /* Remove margens padrão */
     header {visibility: hidden;}
     .block-container {
         padding-top: 1rem !important; 
@@ -27,24 +27,18 @@ st.markdown("""
     }
     footer {visibility: hidden;}
 
-    /* Fundo Dark e Texto Branco */
+   /* Fundo Dark */
     .stApp {
         background-color: #0E1117;
-        color: white;
+        color: white; /* Define a cor padrão do texto como branco */
     }
 
-    /* REMOVE A BARRA DE DIGITAÇÃO/FOCO AO CLICAR */
-    *:focus {
-        outline: none !important;
-        box-shadow: none !important;
-    }
-    
-    /* Força textos brancos */
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stButton button {
+    /* Força títulos, parágrafos e labels (legendas) a ficarem brancos */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {
         color: white !important;
     }
 
-    /* CARD DO PRODUTO */
+    /* CARD DO PRODUTO (VITRINE) */
     .product-card {
         background-color: #1E1E1E;
         border-radius: 12px;
@@ -74,35 +68,46 @@ st.markdown("""
     .card-content {
         padding: 15px;
         color: white;
-        flex-grow: 1;
         display: flex;
         flex-direction: column;
         gap: 5px;
     }
 
-    /* ESTILO DO BOTÃO 'VER DETALHES' PARA FICAR BONITO */
-    .stButton button {
-        width: 100%;
-        border-radius: 8px;
-        background-color: #262730;
-        border: 1px solid #444;
-        color: white;
-        transition: 0.3s;
+    /* Tipografia */
+    .big-kpi {
+        font-size: 3rem;
+        font-weight: 900;
+        background: linear-gradient(90deg, #FF4B4B, #FF914D);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-    .stButton button:hover {
-        background-color: #FF4B4B;
-        border-color: #FF4B4B;
-        color: white !important;
+    
+    .desc-text {
+        color: #AAA; 
+        font-size: 0.85rem; 
+        font-style: italic; 
+        margin-bottom: 8px;
+        line-height: 1.2;
     }
 
-    /* Classes auxiliares */
-    .big-kpi { font-size: 3rem; font-weight: 900; color: #FFFFFF; }
-    .price-badge { background-color: #262730; color: #4CAF50; padding: 4px 8px; border-radius: 4px; font-weight: bold; float: right; font-size: 0.9rem; }
-    .desc-text { color: #AAA; font-size: 0.85rem; font-style: italic; margin-bottom: 8px; line-height: 1.2; }
+    .price-badge {
+        background-color: #262730;
+        color: #4CAF50;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        float: right;
+        font-size: 0.9rem;
+    }
+
+    /* --- COLE AQUI O CÓDIGO NOVO --- */
+    [data-testid="stMetricValue"] {
+        color: #FFFFFF !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #E0E0E0 !important;
+    }
     
-    /* Métricas */
-    [data-testid="stMetricValue"] { color: #FFFFFF !important; }
-    [data-testid="stMetricLabel"] { color: #E0E0E0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -208,30 +213,27 @@ def to_excel(df):
     return output.getvalue()
 
 # -----------------------------------------------------------------------------
-# 4. INTERFACE AUTOMÁTICA (COM NAVEGAÇÃO INTERATIVA)
+# 4. INTERFACE AUTOMÁTICA (SEM UPLOAD)
 # -----------------------------------------------------------------------------
 
-# Nome fixo do arquivo
+# Nome fixo do arquivo que ele vai procurar
 ARQUIVO_ALVO = "dados.xlsx"
 
-# 1. CONTROLE DE ESTADO (MEMÓRIA DO SITE)
-# Isso permite mudar de aba automaticamente quando clica no botão
-if 'aba_atual' not in st.session_state:
-    st.session_state.aba_atual = "Vitrine Visual"
-if 'item_clicado' not in st.session_state:
-    st.session_state.item_clicado = None
-
-# Carrega dados
+# Tenta carregar
 df = load_data(ARQUIVO_ALVO)
 
+# SE NÃO ACHAR O ARQUIVO, MOSTRA AVISO DISCRETO
 if df is None:
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.error(f"❌ O arquivo '{ARQUIVO_ALVO}' não foi encontrado.")
+    st.info("Por favor, renomeie sua planilha para 'dados.xlsx' e coloque na mesma pasta do projeto.")
     st.stop()
 
+# SE ACHAR, RODA O PAINEL DIRETO
 if not df.empty:
-    # --- HEADER / KPIS ---
+    # --- HEADER / KPIS DE IMPACTO ---
     col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
+    
     with col_kpi1:
         st.markdown(f"<div style='font-size:1rem; color:#FFFFFF'>CUSTO TOTAL</div><div class='big-kpi'>R$ {df['TOTAL_LINHA'].sum():,.2f}</div>", unsafe_allow_html=True)
     with col_kpi2:
@@ -243,14 +245,8 @@ if not df.empty:
         
     st.markdown("---")
 
-    # --- SELETOR DE MODO (CONTROLADO PELA MEMÓRIA) ---
-    # O 'key' conecta esse rádio com a variável de sessão
-    mode = st.radio(
-        "Visualização:", 
-        ["Vitrine Visual", "Tabela Analítica", "Detalhe Técnico"], 
-        horizontal=True, 
-        key="aba_atual" 
-    )
+    # --- SELETOR DE MODO ---
+    mode = st.radio("Visualização:", ["Vitrine Visual", "Tabela Analítica", "Detalhe Técnico"], horizontal=True)
     st.write("") 
 
     # --- MODO 1: VITRINE ---
@@ -268,27 +264,24 @@ if not df.empty:
                 if idx < len(df_show):
                     row = df_show.iloc[idx]
                     
-                    # HTML DO CARD
+                    # HTML COMPACTADO PARA EVITAR ERROS (DESIGN MANTIDO)
                     html_card = f"""<div class="product-card"><div class="card-img-container"><img src="{row['IMAGEM']}" style="max-height:100%; max-width:100%; object-fit:contain;"></div><div class="card-content"><div><span class="price-badge">R$ {row['PREÇO_NUM']:,.2f}</span><strong style="font-size:1.1rem; display:block; margin-bottom:5px;">{row['COMPONENTE'][:25]}</strong></div><div class="desc-text">{row['DESCRICAO']}</div><div style="font-size:0.8rem; color:#888; margin-top:auto;">{row['FABRICANTE']} | {row['MODELO']}</div><div style="color:#FF4B4B; font-size:0.9rem; font-weight:bold; margin-top:5px;">Qtd: {int(row['QTD_NUM'])} un.</div></div></div>"""
                     
                     with cols[j]:
                         st.markdown(html_card, unsafe_allow_html=True)
-                        
-                        # --- BOTÃO DE AÇÃO PARA IR PRO DETALHE ---
-                        # Se clicar aqui, mudamos a aba e gravamos qual item foi clicado
-                        if st.button("🔍 Ver Detalhes", key=f"btn_{idx}"):
-                            st.session_state.aba_atual = "Detalhe Técnico" # Muda a aba
-                            st.session_state.item_clicado = row['COMPONENTE'] # Grava o item
-                            st.rerun() # Recarrega a página na nova aba
 
     # --- MODO 2: TABELA ---
     elif mode == "Tabela Analítica":
-        # (Seu código da tabela continua igual...)
         st.caption("Visão geral financeira e técnica dos componentes.")
+        
         df_tab = df[['TAG', 'COMPONENTE', 'DESCRICAO', 'FABRICANTE', 'QTD_NUM', 'PREÇO_NUM', 'TOTAL_LINHA']].copy()
         df_tab = df_tab.sort_values(by='TOTAL_LINHA', ascending=False)
+        
         st.dataframe(
-            df_tab, use_container_width=True, height=600, hide_index=True,
+            df_tab,
+            use_container_width=True,
+            height=600,
+            hide_index=True,
             column_config={
                 "TAG": st.column_config.TextColumn("Tag", width="small"),
                 "COMPONENTE": st.column_config.TextColumn("Componente", width="medium"),
@@ -296,34 +289,42 @@ if not df.empty:
                 "FABRICANTE": "Marca",
                 "QTD_NUM": st.column_config.NumberColumn("Qtd", format="%d"),
                 "PREÇO_NUM": st.column_config.NumberColumn("Unitário", format="R$ %.2f"),
-                "TOTAL_LINHA": st.column_config.ProgressColumn("Custo Total", format="R$ %.2f", min_value=0, max_value=float(df_tab['TOTAL_LINHA'].max()))
+                "TOTAL_LINHA": st.column_config.ProgressColumn(
+                    "Custo Total", 
+                    format="R$ %.2f", 
+                    min_value=0, 
+                    max_value=float(df_tab['TOTAL_LINHA'].max())
+                )
             }
         )
 
     # --- MODO 3: DETALHE TÉCNICO ---
     elif mode == "Detalhe Técnico":
-        lista_itens = df['COMPONENTE'].unique().tolist()
+        lista_itens = df['COMPONENTE'].unique()
+        sel_item = st.selectbox("Pesquisar Componente:", lista_itens)
         
-        # LÓGICA INTELIGENTE:
-        # Se viemos de um clique (item_clicado existe), usamos ele como padrão.
-        # Se não, usamos o primeiro da lista.
-        index_padrao = 0
-        if st.session_state.item_clicado in lista_itens:
-            index_padrao = lista_itens.index(st.session_state.item_clicado)
-
-        sel_item = st.selectbox("Pesquisar Componente:", lista_itens, index=index_padrao)
-        
-        # (Seu código do detalhe continua igual...)
         dados_item = df[df['COMPONENTE'] == sel_item].iloc[0]
         st.markdown("<br>", unsafe_allow_html=True)
+        
         col_img, col_info = st.columns([1, 1.5], gap="large")
         
         with col_img:
-            st.markdown(f"""<div style="background:white; border-radius:15px; padding:20px; display:flex; justify-content:center; align-items:center; height:400px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);"><img src="{dados_item['IMAGEM']}" style="max-height:100%; max-width:100%; object-fit:contain;"></div>""", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:white; border-radius:15px; padding:20px; display:flex; justify-content:center; align-items:center; height:400px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+                <img src="{dados_item['IMAGEM']}" style="max-height:100%; max-width:100%; object-fit:contain;">
+            </div>
+            """, unsafe_allow_html=True)
             
         with col_info:
             st.markdown(f"<h1 style='margin-top:0; font-size:2.5rem; line-height:1.2;'>{dados_item['COMPONENTE']}</h1>", unsafe_allow_html=True)
-            st.markdown(f"""<div style="background:rgba(76, 175, 80, 0.1); border-left:4px solid #4CAF50; padding:15px; border-radius:4px; margin: 15px 0;"><strong style="color:#4CAF50;">FUNÇÃO TÉCNICA:</strong><br><span style="font-size:1.1rem; color:#DDD;">{dados_item['DESCRICAO']}</span></div>""", unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div style="background:rgba(76, 175, 80, 0.1); border-left:4px solid #4CAF50; padding:15px; border-radius:4px; margin: 15px 0;">
+                <strong style="color:#4CAF50;">FUNÇÃO TÉCNICA:</strong><br>
+                <span style="font-size:1.1rem; color:#DDD;">{dados_item['DESCRICAO']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
             c_a, c_b = st.columns(2)
             with c_a:
                 st.markdown("**Fabricante:**")
@@ -331,9 +332,25 @@ if not df.empty:
             with c_b:
                 st.markdown("**Modelo / Referência:**")
                 st.info(dados_item['MODELO'])
+            
             st.markdown(f"**Tags de Projeto:** `{dados_item['TAG']}`")
+            
             st.markdown("---")
-            st.markdown(f"""<div style="display:flex; justify-content:space-between; align-items:center; background:#262730; padding:20px; border-radius:10px; border:1px solid #444;"><div><div style="color:#888; font-size:0.9rem;">Preço Unitário</div><div style="font-size:1.5rem; font-weight:bold;">R$ {dados_item['PREÇO_NUM']:,.2f}</div></div><div style="text-align:right;"><div style="color:#888; font-size:0.9rem;">Quantidade</div><div style="font-size:1.5rem; font-weight:bold; color:#FF4B4B;">x {int(dados_item['QTD_NUM'])}</div></div><div style="text-align:right; border-left:1px solid #555; padding-left:20px;"><div style="color:#4CAF50; font-size:0.9rem;">TOTAL</div><div style="font-size:2rem; font-weight:900; color:#4CAF50;">R$ {dados_item['TOTAL_LINHA']:,.2f}</div></div></div>""", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#262730; padding:20px; border-radius:10px; border:1px solid #444;">
+                <div>
+                    <div style="color:#888; font-size:0.9rem;">Preço Unitário</div>
+                    <div style="font-size:1.5rem; font-weight:bold;">R$ {dados_item['PREÇO_NUM']:,.2f}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:#888; font-size:0.9rem;">Quantidade</div>
+                    <div style="font-size:1.5rem; font-weight:bold; color:#FF4B4B;">x {int(dados_item['QTD_NUM'])}</div>
+                </div>
+                <div style="text-align:right; border-left:1px solid #555; padding-left:20px;">
+                    <div style="color:#4CAF50; font-size:0.9rem;">TOTAL</div>
+                    <div style="font-size:2rem; font-weight:900; color:#4CAF50;">R$ {dados_item['TOTAL_LINHA']:,.2f}</div>
+                </div>
+            </div>
 
-
+            """, unsafe_allow_html=True)
 
