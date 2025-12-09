@@ -99,6 +99,15 @@ st.markdown("""
         float: right;
         font-size: 0.9rem;
     }
+
+    /* --- COLE AQUI O CÓDIGO NOVO --- */
+    [data-testid="stMetricValue"] {
+        color: #FFFFFF !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #E0E0E0 !important;
+    }
+    
 </style>
 """, unsafe_allow_html=True)
 
@@ -344,4 +353,5 @@ if not df.empty:
             </div>
 
             """, unsafe_allow_html=True)
+
 
