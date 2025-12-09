@@ -18,17 +18,6 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-*:focus {
-        outline: none !important;
-        box-shadow: none !important;
-    }
-    
-    /* Remove borda vermelha específica de botões do Streamlit ao clicar */
-    .stButton > button:focus {
-        border-color: #444 !important; /* Mantém a cor original da borda */
-        color: white !important;
-        box-shadow: none !important;
-    }
     /* Remove margens padrão */
     header {visibility: hidden;}
     .block-container {
@@ -364,5 +353,6 @@ if not df.empty:
             </div>
 
             """, unsafe_allow_html=True)
+
 
 
